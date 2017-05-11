@@ -1,11 +1,13 @@
 package com.jiajie.qrscanner;
 
+import android.app.*;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.*;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -27,8 +29,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private ListView lv;
-
+    private static final String TAG = "MainActivity";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,22 +37,12 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        lv = (ListView) findViewById(R.id.list);
-        List<String> arrayList = new ArrayList<>();
-        arrayList.add("Alpha");
-        arrayList.add("Bravo");
-        arrayList.add("Charlie");
-
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, R.layout.list_frag, arrayList);
-        lv.setAdapter(arrayAdapter);
-
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                   //      .setAction("Action", null).show();
-
             }
         });
 
@@ -63,6 +54,7 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
     }
 
     @Override
