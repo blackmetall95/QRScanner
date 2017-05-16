@@ -1,10 +1,9 @@
 package com.jiajie.qrscanner;
 
 import android.app.*;
+import android.content.Intent;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
 import android.view.View;
@@ -125,4 +124,5 @@ public class MainActivity extends AppCompatActivity
             fList.mAdapter.notifyDataSetChanged(); //Update the list.
         }
     }
+
 }
