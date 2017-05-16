@@ -1,11 +1,15 @@
 package com.jiajie.qrscanner;
 
+import android.Manifest;
 import android.app.*;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -21,6 +25,9 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = "MainActivity";
     int count = 1;
+    static final int PERM_WRITE_EXT_STORAGE = 0;
+    static final int PERM_FINE_LOC = 1;
+    static final int PERM_CAMERA = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,13 +36,15 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        CheckPermissions();
         FragmentInit();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                NewItem();
+                //NewItem();
+                CameraActivityIntent();
             }
         });
 
@@ -115,6 +124,9 @@ public class MainActivity extends AppCompatActivity
         trans.commit();
     }
 
+    /**
+     * Test function for the listview
+     */
     void NewItem() {
         FragmentManager fragManager = getSupportFragmentManager();
         FragList fList = (FragList) fragManager.findFragmentByTag("ListFrag"); //Get the transaction declared earlier
@@ -125,4 +137,40 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    void CameraActivityIntent() {
+        Intent camIntent = new Intent(this, CameraActivity.class);
+        startActivity(camIntent);
+    }
+
+
+    void CheckPermissions() {
+        int writeExtStorageCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int fineLocationCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        int cameraCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+
+        if (writeExtStorageCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERM_WRITE_EXT_STORAGE);
+        }
+        if (fineLocationCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERM_FINE_LOC);
+        }
+        if (cameraCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERM_CAMERA);
+        }
+    }
+
+    @Override
+    public void  onRequestPermissionsResult (int requestCode, String permissions[], int[] grantResults ) {
+        switch(requestCode) {
+            case PERM_WRITE_EXT_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
+            }
+            case PERM_FINE_LOC: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
+            }
+            case PERM_CAMERA: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
+            }
+        }
+    }
 }
