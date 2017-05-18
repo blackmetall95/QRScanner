@@ -30,6 +30,8 @@ public class FragList extends ListFragment {
                 getActivity(), android.R.layout.simple_list_item_1, aList);
         setListAdapter(mAdapter);
 
+        setRetainInstance(true);
+
         LongPress();
     }
 
