@@ -40,10 +40,11 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
         this.mSurfaceHolder.addCallback(this);
 
         barReader = new BarcodeReader(context);
-        barReader.setThresholdMode(ThresholdModeEnum.TM_Automatic);
-        barReader.setThreshold(128);
+        barReader.setThresholdMode(ThresholdModeEnum.TM_Adaptive);
+        barReader.setThreshold(100);
+        //default Threshold = 128
         barReader.setScanInterval(2);
-        barReader.setQuietZoneSize(QuietZoneSizeEnum.QZ_Small);
+        barReader.setQuietZoneSize(QuietZoneSizeEnum.QZ_Normal);
         barReader.setBarcodeOrientation(EnumSet.of(BarcodeOrientationEnum.BO_All));
         barReader.setBarcodeTypes(EnumSet.of(BarcodeTypeEnum.BT_QRCode));
     }
@@ -51,7 +52,7 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
     private Camera.PreviewCallback mPreviewListener = new Camera.PreviewCallback() {
         @Override
         public void onPreviewFrame(byte[] data, Camera camera) {
-            Log.d("DTK", "onPreviewFrame");
+            //Log.d("DTK", "onPreviewFrame");
             try {
                 Camera.Parameters params = camera.getParameters();
                 YuvImage frame = new YuvImage(data, params.getPreviewFormat(), params.getPreviewSize().width,
@@ -61,7 +62,9 @@ public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback
 
                 List<Barcode> barcodes = barReader.getBarcodes();
                 if (barcodes.size() > 0) {
-                    txtBox.setText(barcodes.get(0).barcodeString);
+                    //txtBox.setText(barcodes.get(0).barcodeString);
+                    String bCode = barcodes.get(0).barcodeString;
+                    Log.d("DTK", bCode);
                 }
                 frame = null;
             } catch (Exception e) {

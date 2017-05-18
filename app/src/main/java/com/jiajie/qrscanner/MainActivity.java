@@ -2,6 +2,7 @@ package com.jiajie.qrscanner;
 
 import android.Manifest;
 import android.app.*;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
@@ -10,21 +11,23 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.*;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
+
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    private static final String TAG = "MainActivity";
-    int count = 1;
+    IntentIntegrator integrator = new IntentIntegrator(this);
     static final int PERM_WRITE_EXT_STORAGE = 0;
     static final int PERM_FINE_LOC = 1;
     static final int PERM_CAMERA = 2;
@@ -39,12 +42,15 @@ public class MainActivity extends AppCompatActivity
         CheckPermissions();
         FragmentInit();
 
+        integrator.setOrientationLocked(false);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 //NewItem();
-                CameraActivityIntent();
+                //CameraActivityIntent();
+                integrator.initiateScan();
             }
         });
 
@@ -127,16 +133,18 @@ public class MainActivity extends AppCompatActivity
     /**
      * Test function for the listview
      */
-    void NewItem() {
+    void NewItem(String item) {
         FragmentManager fragManager = getSupportFragmentManager();
         FragList fList = (FragList) fragManager.findFragmentByTag("ListFrag"); //Get the transaction declared earlier
         if (fList != null) {
-            fList.mAdapter.add("Item"+count);
-            count++;
+            fList.mAdapter.add(item);
             fList.mAdapter.notifyDataSetChanged(); //Update the list.
         }
     }
 
+    /**
+     * DTK library
+     */
     void CameraActivityIntent() {
         Intent camIntent = new Intent(this, CameraActivity.class);
         startActivity(camIntent);
@@ -170,6 +178,27 @@ public class MainActivity extends AppCompatActivity
             }
             case PERM_CAMERA: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
+            }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent intent){
+        super.onActivityResult(requestCode, resultCode, intent);
+
+        if (resultCode == Activity.RESULT_OK) {
+            //Parsing barcode reader result
+            IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, intent);
+
+            if (result.getContents()==null) {
+                Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
+            } else {
+                android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
+                builder.setTitle("Scan Result");
+                builder.setMessage(result.getContents());
+                android.support.v7.app.AlertDialog alert1 = builder.create();
+                alert1.show();
+                NewItem(result.getContents());
             }
         }
     }
