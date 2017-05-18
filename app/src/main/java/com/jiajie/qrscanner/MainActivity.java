@@ -3,8 +3,10 @@ package com.jiajie.qrscanner;
 import android.Manifest;
 import android.app.*;
 import android.app.AlertDialog;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
@@ -24,13 +26,16 @@ import android.widget.Toast;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+import com.jiajie.qrscanner.DB.ListContract;
+import com.jiajie.qrscanner.DB.ListDbHelper;
+
+public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     IntentIntegrator integrator = new IntentIntegrator(this);
     static final int PERM_WRITE_EXT_STORAGE = 0;
     static final int PERM_FINE_LOC = 1;
     static final int PERM_CAMERA = 2;
+    private ListDbHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,9 +44,9 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        dbHelper = new ListDbHelper(this);
         CheckPermissions();
         FragmentInit();
-
         integrator.setOrientationLocked(false);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -133,7 +138,7 @@ public class MainActivity extends AppCompatActivity
     /**
      * Test function for the listview
      */
-    void NewItem(String item) {
+    void AddNewItem(String item) {
         FragmentManager fragManager = getSupportFragmentManager();
         FragList fList = (FragList) fragManager.findFragmentByTag("ListFrag"); //Get the transaction declared earlier
         if (fList != null) {
@@ -193,12 +198,18 @@ public class MainActivity extends AppCompatActivity
             if (result.getContents()==null) {
                 Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
             } else {
+                String resultString = result.getContents();
                 android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
                 builder.setTitle("Scan Result");
-                builder.setMessage(result.getContents());
+                builder.setMessage(resultString);
                 android.support.v7.app.AlertDialog alert1 = builder.create();
                 alert1.show();
-                NewItem(result.getContents());
+                AddNewItem(resultString);
+                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                ContentValues values = new ContentValues();
+                values.put(ListContract.ScannedEntry.COL_TASK_TITLE, resultString);
+                db.insertWithOnConflict(ListContract.ScannedEntry.TABLE, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                db.close();
             }
         }
     }
