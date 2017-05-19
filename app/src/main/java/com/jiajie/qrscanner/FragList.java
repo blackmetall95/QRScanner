@@ -1,6 +1,8 @@
 package com.jiajie.qrscanner;
 
 import android.content.DialogInterface;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.AlertDialog;
@@ -10,22 +12,34 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.jiajie.qrscanner.DB.ListContract;
+import com.jiajie.qrscanner.DB.ListDbHelper;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class FragList extends ListFragment {
 
     public ArrayAdapter<String> mAdapter; //Declare Adapter here in order for it to be used in Activity.
+    ListDbHelper dbHelper;
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
 
-        //String[] values = {"Alpha", "Bravo", "Charlie", "Delta", "Echo"};
-        String[] values = {};
-        final ArrayList<String>  aList = new ArrayList<>(Arrays.asList(values));
+        final ArrayList<String>  aList = new ArrayList<>();
+        //final ArrayList<String>  aList = new ArrayList<>(Arrays.asList(values));
         /*Initialize the ArrayAdapter with ArrayList instead of String[] to prevent
         crashing when adding new items from FAB in Activity.*/
+
+        dbHelper = new ListDbHelper(getContext());
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.query(ListContract.ScannedEntry.TABLE, new String[]{ListContract.ScannedEntry._ID, ListContract.ScannedEntry.COL_TASK_TITLE}, null, null, null, null, null);
+        while (cursor.moveToNext()) {
+            int idx = cursor.getColumnIndex(ListContract.ScannedEntry.COL_TASK_TITLE);
+            aList.add(cursor.getString(idx));
+        }
+
         mAdapter = new ArrayAdapter<>(
                 getActivity(), android.R.layout.simple_list_item_1, aList);
         setListAdapter(mAdapter);

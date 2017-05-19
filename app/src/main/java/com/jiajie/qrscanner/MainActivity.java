@@ -6,7 +6,9 @@ import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
@@ -14,6 +16,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.*;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -29,7 +32,11 @@ import com.google.zxing.integration.android.IntentResult;
 import com.jiajie.qrscanner.DB.ListContract;
 import com.jiajie.qrscanner.DB.ListDbHelper;
 
+import java.util.ArrayList;
+
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    String TAG="fList!=null";
 
     IntentIntegrator integrator = new IntentIntegrator(this);
     static final int PERM_WRITE_EXT_STORAGE = 0;
@@ -53,8 +60,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //NewItem();
-                //CameraActivityIntent();
                 integrator.initiateScan();
             }
         });
@@ -136,26 +141,42 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Test function for the listview
+     * Adding a new item to the ListView
      */
-    void AddNewItem(String item) {
+    public void updateUI() {
+        ArrayList<String> taskList = new ArrayList<>(); //Crate an ArrayList to hold the information
         FragmentManager fragManager = getSupportFragmentManager();
         FragList fList = (FragList) fragManager.findFragmentByTag("ListFrag"); //Get the transaction declared earlier
+
+        SQLiteDatabase db = dbHelper.getReadableDatabase(); //Create/Open a database
+        Cursor cursor = db.query(ListContract.ScannedEntry.TABLE, new String[]{ListContract.ScannedEntry._ID, ListContract.ScannedEntry.COL_TASK_TITLE}, null, null, null, null, null);
+        while (cursor.moveToNext()) { //Write the information from the Table to the ArrayList
+            int idx = cursor.getColumnIndex(ListContract.ScannedEntry.COL_TASK_TITLE);
+            taskList.add(cursor.getString(idx));
+        }
+
         if (fList != null) {
-            fList.mAdapter.add(item);
+            Log.d(TAG, "Written data to List");
+            fList.mAdapter.clear(); //Clear the existing list.
+            fList.mAdapter.addAll(taskList); //Add the updated list.
             fList.mAdapter.notifyDataSetChanged(); //Update the list.
         }
+            cursor.close();
+            db.close();
+
     }
 
     /**
-     * DTK library
+     * Intent to start activity with DTK library
      */
     void CameraActivityIntent() {
         Intent camIntent = new Intent(this, CameraActivity.class);
         startActivity(camIntent);
     }
 
-
+    /**
+     * Check for permission with the User for SDK23+
+     */
     void CheckPermissions() {
         int writeExtStorageCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         int fineLocationCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
@@ -187,6 +208,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    /**
+     * Respond to the IntentIntegrator call
+     */
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent){
         super.onActivityResult(requestCode, resultCode, intent);
@@ -204,13 +228,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 builder.setMessage(resultString);
                 android.support.v7.app.AlertDialog alert1 = builder.create();
                 alert1.show();
-                AddNewItem(resultString);
+
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
                 ContentValues values = new ContentValues();
                 values.put(ListContract.ScannedEntry.COL_TASK_TITLE, resultString);
                 db.insertWithOnConflict(ListContract.ScannedEntry.TABLE, null, values, SQLiteDatabase.CONFLICT_IGNORE);
                 db.close();
+
+                updateUI();
             }
         }
     }
+
+
 }
