@@ -73,7 +73,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+
     }
+
+    @Override
+    protected void onStart(){
+        super.onStart();
+        updateUI();
+    }
+
 
     @Override
     public void onBackPressed() {
@@ -143,11 +151,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * Adding a new item to the ListView
      */
+
     public void updateUI() {
         ArrayList<String> taskList = new ArrayList<>(); //Crate an ArrayList to hold the information
         FragmentManager fragManager = getSupportFragmentManager();
         FragList fList = (FragList) fragManager.findFragmentByTag("ListFrag"); //Get the transaction declared earlier
-
         SQLiteDatabase db = dbHelper.getReadableDatabase(); //Create/Open a database
         Cursor cursor = db.query(ListContract.ScannedEntry.TABLE, new String[]{ListContract.ScannedEntry._ID, ListContract.ScannedEntry.COL_TASK_TITLE}, null, null, null, null, null);
         while (cursor.moveToNext()) { //Write the information from the Table to the ArrayList
@@ -155,15 +163,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             taskList.add(cursor.getString(idx));
         }
 
-        if (fList != null) {
             Log.d(TAG, "Written data to List");
             fList.mAdapter.clear(); //Clear the existing list.
             fList.mAdapter.addAll(taskList); //Add the updated list.
             fList.mAdapter.notifyDataSetChanged(); //Update the list.
-        }
+
             cursor.close();
             db.close();
-
     }
 
     /**
@@ -239,6 +245,5 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }
     }
-
 
 }
