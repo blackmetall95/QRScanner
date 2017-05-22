@@ -79,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onStart(){
         super.onStart();
-        updateUI();
+        updateUI(); //LOAD DATA TO LIST ON STARTUP HERE TO PREVENT DUPLICATION IN THE FRAGLIST CLASS
     }
 
 
