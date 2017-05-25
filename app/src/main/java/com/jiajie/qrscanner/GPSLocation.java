@@ -41,6 +41,7 @@ public class GPSLocation implements LocationListener {
 
             if (!isGPSEnabled && !isNetworkEnabled){
                 //no network provider is enabled.
+                ShowSettingsAlert();
             } else{
                 this.canGetLocation = true;
                 if (isGPSEnabled){
