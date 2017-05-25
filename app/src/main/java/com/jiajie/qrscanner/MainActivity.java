@@ -43,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     static final int PERM_FINE_LOC = 1;
     static final int PERM_CAMERA = 2;
     private ListDbHelper dbHelper;
+    private GPSLocation gps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        gps = new GPSLocation(MainActivity.this);
         dbHelper = new ListDbHelper(this);
         CheckPermissions();
         FragmentInit();
@@ -72,8 +74,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-
-
     }
 
     @Override
@@ -173,14 +173,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     /**
-     * Intent to start activity with DTK library
-     */
-    void CameraActivityIntent() {
-        Intent camIntent = new Intent(this, CameraActivity.class);
-        startActivity(camIntent);
-    }
-
-    /**
      * Check for permission with the User for SDK23+
      */
     void CheckPermissions() {
@@ -242,8 +234,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 db.close();
 
                 updateUI();
+                getLocation();
+                gps.StopUsingGPS();
             }
         }
     }
 
+    void getLocation(){
+        if (gps.CanGetLocation()){
+            String latitude = gps.getLatitude();
+            String longitude = gps.getLongitude();
+            Toast.makeText(this, "Latitude: "+latitude+" Longitude: "+longitude, Toast.LENGTH_LONG).show();
+            Log.d("Main", "Latitude: "+latitude);
+            Log.d("Main", "Longitude: "+longitude);
+        }
+    }
 }
