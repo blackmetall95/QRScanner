@@ -4,11 +4,13 @@ import android.Manifest;
 import android.app.*;
 import android.app.AlertDialog;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
 import android.os.Bundle;
@@ -33,6 +35,7 @@ import com.jiajie.qrscanner.DB.ListContract;
 import com.jiajie.qrscanner.DB.ListDbHelper;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -54,7 +57,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         gps = new GPSLocation(MainActivity.this);
         dbHelper = new ListDbHelper(this);
-        CheckPermissions();
+        CheckPermissions(this);
         FragmentInit();
         integrator.setOrientationLocked(false);
 
@@ -174,19 +177,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * Check for permission with the User for SDK23+
      */
-    void CheckPermissions() {
+    List<String> permissions = new ArrayList<>();
+    void CheckPermissions(Context context) {
         int writeExtStorageCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         int fineLocationCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int cameraCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
 
-        if (writeExtStorageCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERM_WRITE_EXT_STORAGE);
-        }
-        if (fineLocationCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERM_FINE_LOC);
-        }
-        if (cameraCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERM_CAMERA);
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
+            if (writeExtStorageCheck != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+            if (fineLocationCheck != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+            }
+            if (cameraCheck != PackageManager.PERMISSION_GRANTED) {
+                permissions.add(Manifest.permission.CAMERA);
+            }
+
+            if (!permissions.isEmpty()) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERM_WRITE_EXT_STORAGE);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERM_FINE_LOC);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERM_CAMERA);
+            }
         }
     }
 
