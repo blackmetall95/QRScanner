@@ -2,14 +2,12 @@ package com.jiajie.qrscanner;
 
 import android.Manifest;
 import android.app.*;
-import android.app.AlertDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.Build;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentTransaction;
@@ -43,8 +41,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     IntentIntegrator integrator = new IntentIntegrator(this);
     static final int PERM_WRITE_EXT_STORAGE = 0;
-    static final int PERM_FINE_LOC = 1;
-    static final int PERM_CAMERA = 2;
+    static final int PERM_COARSE_LOC = 1;
+    static final int PERM_FINE_LOC = 2;
+    static final int PERM_CAMERA = 3;
     private ListDbHelper dbHelper;
     private GPSLocation gps;
 
@@ -180,12 +179,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     List<String> permissions = new ArrayList<>();
     void CheckPermissions(Context context) {
         int writeExtStorageCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        int coarseLocationCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
         int fineLocationCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
         int cameraCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
 
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
             if (writeExtStorageCheck != PackageManager.PERMISSION_GRANTED) {
                 permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            }
+            if (coarseLocationCheck != PackageManager.PERMISSION_GRANTED){
+                permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
             }
             if (fineLocationCheck != PackageManager.PERMISSION_GRANTED) {
                 permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -196,6 +199,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             if (!permissions.isEmpty()) {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERM_WRITE_EXT_STORAGE);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PERM_COARSE_LOC);
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, PERM_FINE_LOC);
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PERM_CAMERA);
             }
@@ -206,6 +210,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void  onRequestPermissionsResult (int requestCode, String permissions[], int[] grantResults ) {
         switch(requestCode) {
             case PERM_WRITE_EXT_STORAGE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
+                else{//Disable related functions
+                }
+            }
+            case PERM_COARSE_LOC: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
             }
             case PERM_FINE_LOC: {
