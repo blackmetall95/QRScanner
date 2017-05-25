@@ -40,7 +40,8 @@ public class GPSLocation implements LocationListener {
             isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 
             if (!isGPSEnabled && !isNetworkEnabled){
-                //no network provider is enabled.
+                //No network provider is enabled.
+                ShowSettingsAlert();
             } else{
                 this.canGetLocation = true;
                 if (isGPSEnabled){
@@ -89,8 +90,8 @@ public class GPSLocation implements LocationListener {
     public void ShowSettingsAlert(){
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
 
-        alertDialog.setTitle("GPS is settings");
-        alertDialog.setMessage("GPSis not enabled. Do you want to go to settings?");
+        alertDialog.setTitle("GPS Settings");
+        alertDialog.setMessage("GPS is not enabled. Please enable GPS to use location based functions");
         alertDialog.setPositiveButton("Setting", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);

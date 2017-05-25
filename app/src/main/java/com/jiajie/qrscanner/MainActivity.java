@@ -151,7 +151,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**
      * Adding a new item to the ListView
      */
-
     public void updateUI() {
         ArrayList<String> taskList = new ArrayList<>(); //Crate an ArrayList to hold the information
         FragmentManager fragManager = getSupportFragmentManager();
