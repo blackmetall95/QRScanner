@@ -29,6 +29,7 @@ import android.widget.Toast;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import com.jiajie.qrscanner.Adapter.DataModel;
 import com.jiajie.qrscanner.DB.ListContract;
 import com.jiajie.qrscanner.DB.ListDbHelper;
 
@@ -38,6 +39,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     String TAG="fList!=null";
+    double latitude;
+    double longitude;
 
     IntentIntegrator integrator = new IntentIntegrator(this);
     static final int PERM_WRITE_EXT_STORAGE = 0;
@@ -154,19 +157,29 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
      * Adding a new item to the ListView
      */
     public void updateUI() {
-        ArrayList<String> taskList = new ArrayList<>(); //Crate an ArrayList to hold the information
+        String scanResult;
+        String lat;
+        String lng;
+        DataModel dm;
+        ArrayList<DataModel> aList = new ArrayList<>(); //Crate an ArrayList to hold the information
         FragmentManager fragManager = getSupportFragmentManager();
         FragList fList = (FragList) fragManager.findFragmentByTag("ListFrag"); //Get the transaction declared earlier
         SQLiteDatabase db = dbHelper.getReadableDatabase(); //Create/Open a database
-        Cursor cursor = db.query(ListContract.ScannedEntry.TABLE, new String[]{ListContract.ScannedEntry._ID, ListContract.ScannedEntry.COL_TASK_TITLE}, null, null, null, null, null);
+        Cursor cursor = db.query(ListContract.ScannedEntry.TABLE, new String[]{ListContract.ScannedEntry._ID, ListContract.ScannedEntry.COL_RESULT, ListContract.ScannedEntry.LAT, ListContract.ScannedEntry.LNG}, null, null, null, null, null);
         while (cursor.moveToNext()) { //Write the information from the Table to the ArrayList
-            int idx = cursor.getColumnIndex(ListContract.ScannedEntry.COL_TASK_TITLE);
-            taskList.add(cursor.getString(idx));
+            int idx1 = cursor.getColumnIndex(ListContract.ScannedEntry.COL_RESULT);
+            int idx2 = cursor.getColumnIndex(ListContract.ScannedEntry.LAT);
+            int idx3 = cursor.getColumnIndex(ListContract.ScannedEntry.LNG);
+            scanResult = cursor.getString(idx1);
+            lat = cursor.getString(idx2);
+            lng = cursor.getString(idx3);
+            dm = new DataModel(scanResult, lat, lng);
+            aList.add(dm);
         }
 
             Log.d(TAG, "Written data to List");
             fList.mAdapter.clear(); //Clear the existing list.
-            fList.mAdapter.addAll(taskList); //Add the updated list.
+            fList.mAdapter.addAll(aList); //Add the updated list.
             fList.mAdapter.notifyDataSetChanged(); //Update the list.
 
             cursor.close();
@@ -247,26 +260,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 android.support.v7.app.AlertDialog alert1 = builder.create();
                 alert1.show();
 
+                getLocation();
+                gps.StopUsingGPS();
+
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
-                ContentValues values = new ContentValues();
-                values.put(ListContract.ScannedEntry.COL_TASK_TITLE, resultString);
-                db.insertWithOnConflict(ListContract.ScannedEntry.TABLE, null, values, SQLiteDatabase.CONFLICT_IGNORE);
+                ContentValues value = new ContentValues();
+                value.clear();
+                value.put(ListContract.ScannedEntry.COL_RESULT, resultString);
+                value.put(ListContract.ScannedEntry.LAT, latitude);
+                value.put(ListContract.ScannedEntry.LNG, longitude);
+                db.insertWithOnConflict(ListContract.ScannedEntry.TABLE, null, value, SQLiteDatabase.CONFLICT_IGNORE);
+
                 db.close();
 
                 updateUI();
-                getLocation();
-                gps.StopUsingGPS();
             }
         }
     }
 
-    void getLocation(){
+    double getLocation(){
         if (gps.CanGetLocation()){
-            String latitude = gps.getLatitude();
-            String longitude = gps.getLongitude();
-            Toast.makeText(this, "Latitude: "+latitude+" Longitude: "+longitude, Toast.LENGTH_LONG).show();
+            latitude = gps.getLatitude();
+            longitude = gps.getLongitude();
+            //Toast.makeText(this, "Latitude: "+latitude+" Longitude: "+longitude, Toast.LENGTH_LONG).show();
             Log.d("Main", "Latitude: "+latitude);
             Log.d("Main", "Longitude: "+longitude);
         }
+        return latitude+longitude;
     }
 }

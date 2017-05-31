@@ -25,8 +25,8 @@ public class GPSLocation implements LocationListener {
     private static final long MIN_TIME_BW_UPDATES = 1000*60*1;
 
     private Location location;
-    private String latitude;
-    private String longitude;
+    private double latitude;
+    private double longitude;
 
     public GPSLocation(Context context){
         this.mContext = context;
@@ -52,8 +52,8 @@ public class GPSLocation implements LocationListener {
                         if (locationManager != null){
                             location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
                             if (location != null){
-                                latitude = Double.toString(location.getLatitude());
-                                longitude = Double.toString(location.getLongitude());
+                                latitude = location.getLatitude();
+                                longitude = location.getLongitude();
                             }
                         }
                     }
@@ -67,8 +67,8 @@ public class GPSLocation implements LocationListener {
                         if (locationManager != null){
                             location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                             if (location != null){
-                                latitude = Double.toString(location.getLatitude());
-                                longitude = Double.toString(location.getLongitude());
+                                latitude = location.getLatitude();
+                                longitude = location.getLongitude();
                             }
                         }
                     }
@@ -80,13 +80,24 @@ public class GPSLocation implements LocationListener {
         return location;
     }
 
-    public String getLatitude(){
+    /********** Return Location **********/
+    public double getLatitude(){
         if (location != null){
-            longitude = Double.toString(location.getLatitude());
+            //latitude = Double.toString(location.getLatitude());
+            latitude = location.getLatitude();
         }
         return latitude;
     }
 
+    public double getLongitude(){
+        if (location != null){
+            //longitude = Double.toString(location.getLongitude());
+            longitude = location.getLongitude();
+        }
+        return longitude;
+    }
+
+    /********** Check Settings **********/
     public void ShowSettingsAlert(){
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
 
@@ -104,13 +115,6 @@ public class GPSLocation implements LocationListener {
             }
         });
         alertDialog.show();
-    }
-
-    public String getLongitude(){
-        if (location != null){
-            longitude = Double.toString(location.getLongitude());
-        }
-        return longitude;
     }
 
     public boolean CanGetLocation(){

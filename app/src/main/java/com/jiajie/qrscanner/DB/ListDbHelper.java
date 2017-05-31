@@ -4,6 +4,8 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.List;
+
 public class ListDbHelper extends SQLiteOpenHelper {
 
     public  ListDbHelper(Context context) {
@@ -14,7 +16,9 @@ public class ListDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String createTable = " CREATE TABLE " + ListContract.ScannedEntry.TABLE + " (" +
                 ListContract.ScannedEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                ListContract.ScannedEntry.COL_TASK_TITLE + " TEXT NOT NULL); ";
+                ListContract.ScannedEntry.COL_RESULT + " TEXT NOT NULL, " +
+                ListContract.ScannedEntry.LAT + " DOUBLE, " +
+                ListContract.ScannedEntry.LNG + " DOUBLE); ";
 
         db.execSQL(createTable);
     }

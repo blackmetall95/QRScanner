@@ -1,39 +1,34 @@
 package com.jiajie.qrscanner;
 
-import android.app.Activity;
 import android.content.DialogInterface;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.jiajie.qrscanner.Adapter.*;
 import com.jiajie.qrscanner.DB.ListContract;
 import com.jiajie.qrscanner.DB.ListDbHelper;
 
 import java.util.ArrayList;
-import java.util.zip.Inflater;
 
 public class FragList extends ListFragment {
 
-    public ArrayAdapter<String> mAdapter; //Declare Adapter here in order for it to be used in Activity.
+    public CustomAdapter mAdapter; //Declare Adapter here in order for it to be used in Activity.
 
     @Override
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
-        ArrayList<String>  aList = new ArrayList<>();
+        ArrayList<DataModel>  aList = new ArrayList<>();
         //Initialize the ArrayAdapter with ArrayList instead of String[] to prevent
         //crashing when adding new items from FAB in Activity.
-        mAdapter = new ArrayAdapter<>(
-                getActivity(), android.R.layout.simple_list_item_1, aList);
+        mAdapter = new CustomAdapter(getActivity(), R.layout.data_model, aList);
 
         setListAdapter(mAdapter);
         mAdapter.setNotifyOnChange(true);
@@ -84,11 +79,12 @@ public class FragList extends ListFragment {
         });
     }
 
-    public void deleteFromDb(String value) {
+    public void deleteFromDb(DataModel dm) {
+        String value = dm.getScanResult();
         Log.d("DeleteValue", "Value to be deleted"+value);
         ListDbHelper dbHelper = new ListDbHelper(getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.delete(ListContract.ScannedEntry.TABLE, ListContract.ScannedEntry.COL_TASK_TITLE+ " =? ", new String[]{value});
+        db.delete(ListContract.ScannedEntry.TABLE, ListContract.ScannedEntry.COL_RESULT+ " =? ", new String[]{value});
         db.close();
     }
 }
