@@ -8,7 +8,6 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -21,6 +20,14 @@ import java.util.ArrayList;
 public class FragList extends ListFragment {
 
     public CustomAdapter mAdapter; //Declare Adapter here in order for it to be used in Activity.
+    public static FragList newInstance(int page, String title){
+        FragList fList = new FragList();
+        Bundle args = new Bundle();
+        args.putInt("1", page);
+        args.putString("List", title);
+        fList.setArguments(args);
+        return fList;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState){

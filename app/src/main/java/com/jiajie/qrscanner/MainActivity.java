@@ -9,13 +9,16 @@ import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.*;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.*;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -24,6 +27,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -42,6 +46,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     double latitude;
     double longitude;
 
+    FragmentPagerAdapter adapterViewPager;
     IntentIntegrator integrator = new IntentIntegrator(this);
     static final int PERM_WRITE_EXT_STORAGE = 0;
     static final int PERM_COARSE_LOC = 1;
@@ -56,6 +61,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        ViewPager vPager = (ViewPager) findViewById(R.id.ViewPager);
+        adapterViewPager = new MyPagerAdapter(getSupportFragmentManager());
+        vPager.setAdapter(adapterViewPager);
 
         gps = new GPSLocation(MainActivity.this);
         dbHelper = new ListDbHelper(this);
@@ -85,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onStart(){
         super.onStart();
         updateUI(); //LOAD DATA TO LIST ON STARTUP HERE TO PREVENT DUPLICATION IN THE FRAGLIST CLASS
+        loadTitles();
     }
 
 
@@ -287,5 +296,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             Log.d("Main", "Longitude: "+longitude);
         }
         return latitude+longitude;
+    }
+
+    private static ArrayList<String> titles = new ArrayList<>();
+    private void loadTitles(){
+        //ToDo find a better way of implementing this
+        String[] titleString = {"List", "Map"};
+        for (int i = 0; i < titleString.length; i++) {
+            titles.add(titleString[i]);
+        }
+    }
+
+    private static class MyPagerAdapter extends FragmentPagerAdapter{
+        private static int NUM_ITEMS = 2;
+
+
+
+        private MyPagerAdapter(FragmentManager fragManager){
+            super(fragManager);
+        }
+
+        @Override
+        public int getCount() {
+            return NUM_ITEMS;
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            switch (position) {
+                case 0:
+                    return FragList.newInstance(0, "List");
+                case 1:
+                    return FragMap.newInstance(1, "Map");
+            }
+            return null;
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position){
+            //return "Title here";
+            return titles.get(position);
+        }
     }
 }
