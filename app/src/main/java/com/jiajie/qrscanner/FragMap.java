@@ -8,8 +8,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
+import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
 public class FragMap extends Fragment{
@@ -42,9 +44,14 @@ public class FragMap extends Fragment{
         View view = inflater.inflate(R.layout.frag_map, container, false);
         MapView map = new MapView(context);
         map.findViewById(R.id.mapview);
-        map.setTileSource(TileSourceFactory.USGS_SAT);
+        map.setTileSource(TileSourceFactory.MAPNIK);
         map.setBuiltInZoomControls(true);
         map.setMultiTouchControls(true);
+
+        IMapController mapController = map.getController();
+        mapController.setZoom(10);
+        GeoPoint startPoint = new GeoPoint(3.1365, 101.6865);
+        mapController.setCenter(startPoint);
         return view;
     }
 

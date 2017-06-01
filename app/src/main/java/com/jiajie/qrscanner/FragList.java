@@ -6,7 +6,9 @@ import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -23,7 +25,7 @@ public class FragList extends ListFragment {
     public static FragList newInstance(int page, String title){
         FragList fList = new FragList();
         Bundle args = new Bundle();
-        args.putInt("1", page);
+        args.putInt("0", page);
         args.putString("List", title);
         fList.setArguments(args);
         return fList;
@@ -41,6 +43,12 @@ public class FragList extends ListFragment {
         mAdapter.setNotifyOnChange(true);
         setRetainInstance(true);
     }
+
+    /*@Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
+        super.onCreateView(inflater, container, savedInstanceState);
+        return inflater.inflate(R.layout.frag_list, container, false);
+    }*/
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
