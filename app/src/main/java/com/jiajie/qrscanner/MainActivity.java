@@ -6,9 +6,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.support.v4.app.*;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -27,13 +27,11 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
-import com.jiajie.qrscanner.Adapter.DataModel;
 import com.jiajie.qrscanner.DB.ListContract;
 import com.jiajie.qrscanner.DB.ListDbHelper;
 
@@ -42,25 +40,27 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
-    String TAG="fList!=null";
     double latitude;
     double longitude;
 
     FragmentPagerAdapter adapterViewPager;
+    MyPagerAdapter mPagerAdapter;
     IntentIntegrator integrator = new IntentIntegrator(this);
     static final int PERM_WRITE_EXT_STORAGE = 0;
     static final int PERM_COARSE_LOC = 1;
     static final int PERM_FINE_LOC = 2;
     static final int PERM_CAMERA = 3;
-    private ListDbHelper dbHelper;
     private GPSLocation gps;
+    private ListDbHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        /* ViewPager */
         ViewPager vPager = (ViewPager) findViewById(R.id.ViewPager);
         adapterViewPager = new MyPagerAdapter(getSupportFragmentManager());
         vPager.setAdapter(adapterViewPager);
@@ -68,7 +68,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         gps = new GPSLocation(MainActivity.this);
         dbHelper = new ListDbHelper(this);
         CheckPermissions(this);
-        FragmentInit();
+        FragmentManager fM = getSupportFragmentManager();
+        mPagerAdapter = new MyPagerAdapter(fM);
         integrator.setOrientationLocked(false);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -92,7 +93,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onStart(){
         super.onStart();
-        updateUI(); //LOAD DATA TO LIST ON STARTUP HERE TO PREVENT DUPLICATION IN THE FRAGLIST CLASS
+        //updateUI(); //LOAD DATA TO LIST ON STARTUP HERE TO PREVENT DUPLICATION IN THE FRAGLIST CLASS
         loadTitles();
     }
 
@@ -154,47 +155,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    void FragmentInit(){
-        FragmentManager fragManager = getSupportFragmentManager();
-        final FragList fList = new FragList();
-        FragmentTransaction trans = fragManager.beginTransaction();
-        trans.add(R.id.list, fList, "ListFrag"); //Assign a tag to the fragment.
-        trans.commit();
-    }
-
-    /**
-     * Adding a new item to the ListView
-     */
-    public void updateUI() {
-        String scanResult;
-        String lat;
-        String lng;
-        DataModel dm;
-        ArrayList<DataModel> aList = new ArrayList<>(); //Crate an ArrayList to hold the information
-        FragmentManager fragManager = getSupportFragmentManager();
-        FragList fList = (FragList) fragManager.findFragmentByTag("ListFrag"); //Get the transaction declared earlier
-        SQLiteDatabase db = dbHelper.getReadableDatabase(); //Create/Open a database
-        Cursor cursor = db.query(ListContract.ScannedEntry.TABLE, new String[]{ListContract.ScannedEntry._ID, ListContract.ScannedEntry.COL_RESULT, ListContract.ScannedEntry.LAT, ListContract.ScannedEntry.LNG}, null, null, null, null, null);
-        while (cursor.moveToNext()) { //Write the information from the Table to the ArrayList
-            int idx1 = cursor.getColumnIndex(ListContract.ScannedEntry.COL_RESULT);
-            int idx2 = cursor.getColumnIndex(ListContract.ScannedEntry.LAT);
-            int idx3 = cursor.getColumnIndex(ListContract.ScannedEntry.LNG);
-            scanResult = cursor.getString(idx1);
-            lat = cursor.getString(idx2);
-            lng = cursor.getString(idx3);
-            dm = new DataModel(scanResult, lat, lng);
-            aList.add(dm);
-        }
-
-            Log.d(TAG, "Written data to List");
-            fList.mAdapter.clear(); //Clear the existing list.
-            fList.mAdapter.addAll(aList); //Add the updated list.
-            fList.mAdapter.notifyDataSetChanged(); //Update the list.
-
-            cursor.close();
-            db.close();
-    }
-
     /**
      * Check for permission with the User for SDK23+
      */
@@ -229,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
-    public void  onRequestPermissionsResult (int requestCode, String permissions[], int[] grantResults ) {
+    public void  onRequestPermissionsResult (int requestCode, @NonNull String permissions[], @NonNull int[] grantResults ) {
         switch(requestCode) {
             case PERM_WRITE_EXT_STORAGE: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
@@ -281,8 +241,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 db.insertWithOnConflict(ListContract.ScannedEntry.TABLE, null, value, SQLiteDatabase.CONFLICT_IGNORE);
 
                 db.close();
-
-                updateUI();
+                MyPagerAdapter.fList.updateFromDb();
+//                mPagerAdapter.fList.updateFromDb();
+                //FragmentManager fManager = getSupportFragmentManager();
+                //fManager.findFragmentByTag("List");
+                //FragList fList = new FragList();
+                //mPagerAdapter.dataChanged();
             }
         }
     }
@@ -310,11 +274,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static class MyPagerAdapter extends FragmentPagerAdapter{
         private static int NUM_ITEMS = 2;
 
-
-
         private MyPagerAdapter(FragmentManager fragManager){
             super(fragManager);
         }
+        private static FragList fList = FragList.newInstance(0, "List");
 
         @Override
         public int getCount() {
@@ -325,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return FragList.newInstance(0, "List");
+                    return fList;//FragList.newInstance(0, "List");
                 case 1:
                     return FragMap.newInstance(1, "Map");
             }
@@ -337,5 +300,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             //return "Title here";
             return titles.get(position);
         }
+
+        public void dataChanged(){
+            fList.updateFromDb();
+        }
     }
+
 }
