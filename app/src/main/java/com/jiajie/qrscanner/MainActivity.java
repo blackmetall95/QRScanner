@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.*;
@@ -42,6 +41,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     double latitude;
     double longitude;
+    double lat = 3.1365;
+    double lng = 101.6865;
+    double count = 0;
 
     FragmentPagerAdapter adapterViewPager;
     MyPagerAdapter mPagerAdapter;
@@ -93,7 +95,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onStart(){
         super.onStart();
-        //updateUI(); //LOAD DATA TO LIST ON STARTUP HERE TO PREVENT DUPLICATION IN THE FRAGLIST CLASS
         loadTitles();
     }
 
@@ -230,23 +231,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 alert1.show();
 
                 getLocation();
-                gps.StopUsingGPS();
 
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
                 ContentValues value = new ContentValues();
                 value.clear();
                 value.put(ListContract.ScannedEntry.COL_RESULT, resultString);
-                value.put(ListContract.ScannedEntry.LAT, latitude);
-                value.put(ListContract.ScannedEntry.LNG, longitude);
+                value.put(ListContract.ScannedEntry.LAT, lat+count);//latitude);
+                value.put(ListContract.ScannedEntry.LNG, lng+count);//longitude);
                 db.insertWithOnConflict(ListContract.ScannedEntry.TABLE, null, value, SQLiteDatabase.CONFLICT_IGNORE);
+                count = count+0.5;
 
                 db.close();
-                MyPagerAdapter.fList.updateFromDb();
-//                mPagerAdapter.fList.updateFromDb();
-                //FragmentManager fManager = getSupportFragmentManager();
-                //fManager.findFragmentByTag("List");
-                //FragList fList = new FragList();
-                //mPagerAdapter.dataChanged();
+                mPagerAdapter.dataChanged();
+                gps.StopUsingGPS();
             }
         }
     }
@@ -278,6 +275,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             super(fragManager);
         }
         private static FragList fList = FragList.newInstance(0, "List");
+        private static FragMap fMap = FragMap.newInstance(1,"Map");
 
         @Override
         public int getCount() {
@@ -288,9 +286,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return fList;//FragList.newInstance(0, "List");
+                    return fList;
                 case 1:
-                    return FragMap.newInstance(1, "Map");
+                    return fMap;
             }
             return null;
         }
@@ -303,6 +301,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         public void dataChanged(){
             fList.updateFromDb();
+            fMap.markerInit();
         }
     }
 

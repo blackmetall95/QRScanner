@@ -1,7 +1,6 @@
 package com.jiajie.qrscanner;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -24,8 +23,9 @@ import java.util.ArrayList;
 
 public class FragList extends ListFragment {
 
-    public CustomAdapter mAdapter; //Declare Adapter here in order for it to be used in Activity.
+    public CustomAdapter mAdapter; /*Declare Adapter here in order for it to be used in Activity.*/
     public ArrayList<DataModel> aList1;
+    private ListDbHelper dbHelper;
 
     public static FragList newInstance(int page, String title){
         FragList fList = new FragList();
@@ -40,8 +40,8 @@ public class FragList extends ListFragment {
     public void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         aList1 = new ArrayList<>();
-        //Initialize the ArrayAdapter with ArrayList instead of String[] to prevent
-        //crashing when adding new items from FAB in Activity.
+        /*Initialize the ArrayAdapter with ArrayList instead of String[] to prevent
+        crashing when adding new items from FAB in Activity.*/
         mAdapter = new CustomAdapter(getActivity(), R.layout.data_model, aList1);
 
 
@@ -54,7 +54,7 @@ public class FragList extends ListFragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState){
         super.onCreateView(inflater, container, savedInstanceState);
         View rootView = inflater.inflate(R.layout.frag_list, container, false);
-        updateFromDb();
+        updateFromDb(); /* LOAD DATA */
         return rootView;
     }
 
@@ -81,9 +81,6 @@ public class FragList extends ListFragment {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                 AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
-                //Log.d("FragList", "Position"+position);
-                //Log.d("FragList","mAdapter Size"+mAdapter.getCount());
-                //Log.d("FragList", "String"+mAdapter.getItem(position));
                 alertDialog.setTitle("Delete");
                 alertDialog.setTitle("Do you want to delete this entry?");
                 alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "Cancel",
@@ -112,7 +109,6 @@ public class FragList extends ListFragment {
         ArrayList<DataModel> aList2 = new ArrayList<>();
         Log.d("LISTFRAG", "Written data to List");
 
-        ListDbHelper dbHelper ;//= new ListDbHelper(getContext());
         SQLiteDatabase db;// = dbHelper.getReadableDatabase();
 
         String scanResult;
@@ -120,9 +116,7 @@ public class FragList extends ListFragment {
         String lng;
         DataModel dm;
          //Create/Open a database
-//        Log.d("activity",  getActivity().toString());
-        dbHelper = new ListDbHelper(getActivity());
-//        Log.d("dbHelper",  getActivity().toString()); //override onattach , store context/activity in a class variable
+        dbHelper = new ListDbHelper(getActivity().getApplicationContext());
 
         db = dbHelper.getReadableDatabase();
         Log.d("db", db.toString());
@@ -144,10 +138,9 @@ public class FragList extends ListFragment {
         mAdapter.clear(); //Clear the existing list.
         mAdapter.addAll(aList2); //Add the updated list.
         mAdapter.notifyDataSetChanged();
-
     }
 
-    public void deleteFromDb(DataModel dm) {
+    public void deleteFromDb(DataModel dm){
         String value = dm.getScanResult();
         Log.d("DeleteValue", "Value to be deleted"+value);
         ListDbHelper dbHelper = new ListDbHelper(getContext());
