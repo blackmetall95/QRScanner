@@ -18,7 +18,8 @@ public class ListDbHelper extends SQLiteOpenHelper {
                 ListContract.ScannedEntry._ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 ListContract.ScannedEntry.COL_RESULT + " TEXT NOT NULL, " +
                 ListContract.ScannedEntry.LAT + " DOUBLE, " +
-                ListContract.ScannedEntry.LNG + " DOUBLE); ";
+                ListContract.ScannedEntry.LNG + " DOUBLE, " +
+                ListContract.ScannedEntry.DATE+ " INTEGER); ";
 
         db.execSQL(createTable);
     }

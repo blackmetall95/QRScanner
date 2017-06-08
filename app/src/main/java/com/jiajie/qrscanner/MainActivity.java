@@ -34,8 +34,11 @@ import com.google.zxing.integration.android.IntentResult;
 import com.jiajie.qrscanner.DB.ListContract;
 import com.jiajie.qrscanner.DB.ListDbHelper;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -54,6 +57,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     static final int PERM_CAMERA = 3;
     private GPSLocation gps;
     private ListDbHelper dbHelper;
+    private String date;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         CheckPermissions(this);
         FragmentManager fM = getSupportFragmentManager();
         mPagerAdapter = new MyPagerAdapter(fM);
+
         integrator.setOrientationLocked(false);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -232,12 +237,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 getLocation();
 
+                date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.PRC).format(Calendar.getInstance().getTime());
+                Log.d("Date ", date);
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
                 ContentValues value = new ContentValues();
                 value.clear();
                 value.put(ListContract.ScannedEntry.COL_RESULT, resultString);
-                value.put(ListContract.ScannedEntry.LAT, lat+count);//latitude);
-                value.put(ListContract.ScannedEntry.LNG, lng+count);//longitude);
+                value.put(ListContract.ScannedEntry.LAT, latitude);
+                value.put(ListContract.ScannedEntry.LNG, longitude);
+                value.put(ListContract.ScannedEntry.DATE, date);
                 db.insertWithOnConflict(ListContract.ScannedEntry.TABLE, null, value, SQLiteDatabase.CONFLICT_IGNORE);
                 count = count+0.5;
 
@@ -295,7 +303,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         public CharSequence getPageTitle(int position){
-            //return "Title here";
             return titles.get(position);
         }
 

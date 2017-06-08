@@ -44,7 +44,6 @@ public class FragList extends ListFragment {
         crashing when adding new items from FAB in Activity.*/
         mAdapter = new CustomAdapter(getActivity(), R.layout.data_model, aList1);
 
-
         setListAdapter(mAdapter);
         mAdapter.setNotifyOnChange(true);
         setRetainInstance(true);
@@ -114,21 +113,24 @@ public class FragList extends ListFragment {
         String scanResult;
         String lat;
         String lng;
+        String date;
         DataModel dm;
          //Create/Open a database
         dbHelper = new ListDbHelper(getActivity().getApplicationContext());
 
         db = dbHelper.getReadableDatabase();
         Log.d("db", db.toString());
-        Cursor cursor = db.query(ListContract.ScannedEntry.TABLE, new String[]{ListContract.ScannedEntry._ID, ListContract.ScannedEntry.COL_RESULT, ListContract.ScannedEntry.LAT, ListContract.ScannedEntry.LNG}, null, null, null, null, null);
+        Cursor cursor = db.query(ListContract.ScannedEntry.TABLE, new String[]{ListContract.ScannedEntry._ID, ListContract.ScannedEntry.COL_RESULT, ListContract.ScannedEntry.LAT, ListContract.ScannedEntry.LNG, ListContract.ScannedEntry.DATE}, null, null, null, null, null);
         while (cursor.moveToNext()) { //Write the information from the Table to the ArrayList
             int idx1 = cursor.getColumnIndex(ListContract.ScannedEntry.COL_RESULT);
             int idx2 = cursor.getColumnIndex(ListContract.ScannedEntry.LAT);
             int idx3 = cursor.getColumnIndex(ListContract.ScannedEntry.LNG);
+            int idx4 = cursor.getColumnIndex(ListContract.ScannedEntry.DATE);
             scanResult = cursor.getString(idx1);
             lat = cursor.getString(idx2);
             lng = cursor.getString(idx3);
-            dm = new DataModel(scanResult, lat, lng);
+            date = cursor.getString(idx4);
+            dm = new DataModel(scanResult, lat, lng, date);
             aList2.add(dm);
         }
         db.close();
@@ -141,11 +143,14 @@ public class FragList extends ListFragment {
     }
 
     public void deleteFromDb(DataModel dm){
-        String value = dm.getScanResult();
-        Log.d("DeleteValue", "Value to be deleted"+value);
+        String value1 = dm.getScanResult();
+        String value2 = dm.getDate();
+        Log.d("DeleteValue", "Value to be deleted"+value1);
         ListDbHelper dbHelper = new ListDbHelper(getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.delete(ListContract.ScannedEntry.TABLE, ListContract.ScannedEntry.COL_RESULT+ " =? ", new String[]{value});
+        db.delete(ListContract.ScannedEntry.TABLE, ListContract.ScannedEntry.COL_RESULT+" =? AND "+ListContract.ScannedEntry.DATE+" =? ", new String[]{value1, value2});
+        //db.delete(ListContract.ScannedEntry.TABLE, ListContract.ScannedEntry.COL_RESULT+ " =? ", new String[]{value});
         db.close();
+        dbHelper.close();
     }
 }
