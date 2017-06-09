@@ -18,29 +18,29 @@ import java.util.List;
 
 
 public class GPSLocation implements LocationListener {
-
-    private final Context mContext;
-    private LocationManager locationManager;
-
-    private boolean isGPSEnabled = false;
+    /*========== CONSTANTS ==========*/
+    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 5;
+    private static final long MIN_TIME_BW_UPDATES = 200;
+    /*========== VARIABLES ==========*/
     private boolean isNetworkEnabled = false;
     private boolean canGetLocation = false;
-
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 0;//10;
-    private static final long MIN_TIME_BW_UPDATES = 0;//1000 * 60 * 1;
-
-    private Location location;
-    private double latitude;
+    private boolean isGPSEnabled = false;
     private double longitude;
-    String TAG1 = "GPS";
-    String TAG2 = "NETWORK";
-    public GPSLocation(Context context) {
+    private double latitude;
+    private String TAG1 = "GPS";
+    private String TAG2 = "NETWORK";
+    /*========== FIELDS ==========*/
+    private LocationManager locationManager;
+    protected List<String> permissions;
+    private final Context mContext;
+    private Location location;
+    /*========== CONSTRUCTOR ==========*/
+    protected GPSLocation(Context context) {
         this.mContext = context;
         getLocation();
     }
 
-    List<String> permissions;
-    public Location getLocation() {
+    private Location getLocation() {
         try {
             locationManager = (LocationManager) mContext.getSystemService(Context.LOCATION_SERVICE);
             isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -70,7 +70,6 @@ public class GPSLocation implements LocationListener {
                         }
                     }
                 }
-
                 if (isNetworkEnabled){
                     if (location == null){
                         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
@@ -93,8 +92,10 @@ public class GPSLocation implements LocationListener {
         return location;
     }
 
-    /********** Return Location **********/
-    public double getLatitude(){
+    /*****************
+     * Return Location
+     *****************/
+    double getLatitude(){
         if (location != null){
             //latitude = Double.toString(location.getLatitude());
             latitude = location.getLatitude();
@@ -102,7 +103,7 @@ public class GPSLocation implements LocationListener {
         return latitude;
     }
 
-    public double getLongitude(){
+    double getLongitude(){
         if (location != null){
             //longitude = Double.toString(location.getLongitude());
             longitude = location.getLongitude();
@@ -110,10 +111,11 @@ public class GPSLocation implements LocationListener {
         return longitude;
     }
 
-    /********** Check Settings **********/
-    public void ShowSettingsAlert(){
+    /****************
+     * Check Settings
+     ****************/
+    private void ShowSettingsAlert(){
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(mContext);
-
         alertDialog.setTitle("GPS Settings");
         alertDialog.setMessage("GPS is not enabled. Please enable GPS to use location based functions");
         alertDialog.setPositiveButton("Setting", new DialogInterface.OnClickListener() {
@@ -130,11 +132,14 @@ public class GPSLocation implements LocationListener {
         alertDialog.show();
     }
 
-    public boolean CanGetLocation(){
+    boolean CanGetLocation(){
         return this.canGetLocation;
     }
 
-    public void StopUsingGPS(){
+    /**********
+     * Stop GPS
+     **********/
+    void StopUsingGPS(){
         if (location != null){
             locationManager.removeUpdates(GPSLocation.this);
         }
@@ -142,21 +147,17 @@ public class GPSLocation implements LocationListener {
 
     @Override
     public void onLocationChanged(Location location) {
-
     }
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-
     }
 
     @Override
     public void onProviderEnabled(String provider) {
-
     }
 
     @Override
     public void onProviderDisabled(String provider) {
-
     }
 }

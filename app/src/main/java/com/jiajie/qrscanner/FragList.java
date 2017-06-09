@@ -22,11 +22,11 @@ import com.jiajie.qrscanner.DB.ListDbHelper;
 import java.util.ArrayList;
 
 public class FragList extends ListFragment {
-
+    /*========== FIELDS ==========*/
     public CustomAdapter mAdapter; /*Declare Adapter here in order for it to be used in Activity.*/
     public ArrayList<DataModel> aList1;
     private ListDbHelper dbHelper;
-
+    /*========== CONSTRUCTOR ==========*/
     public static FragList newInstance(int page, String title){
         FragList fList = new FragList();
         Bundle args = new Bundle();
@@ -43,9 +43,10 @@ public class FragList extends ListFragment {
         /*Initialize the ArrayAdapter with ArrayList instead of String[] to prevent
         crashing when adding new items from FAB in Activity.*/
         mAdapter = new CustomAdapter(getActivity(), R.layout.data_model, aList1);
-
+        /*========== Set Adapter ==========*/
         setListAdapter(mAdapter);
         mAdapter.setNotifyOnChange(true);
+        /*========== Retain Data ==========*/
         setRetainInstance(true);
     }
 
@@ -91,10 +92,10 @@ public class FragList extends ListFragment {
                 alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "Delete",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog, int which){
-                                //Get the position of the current item instead of the String.
+                                /*========== Get Item Position ==========*/
                                 deleteFromDb(mAdapter.getItem(position)); //MUST BE DELETED FROM DB BEFORE DELETING FROM ARRAY ADAPTER OR RESULTS WILL BE INCORRECT.
                                 mAdapter.remove(mAdapter.getItem(position));
-                                //Update the list.
+                                /*========== Update ==========*/
                                 mAdapter.notifyDataSetChanged();
                             }
                         });
@@ -105,21 +106,20 @@ public class FragList extends ListFragment {
     }
 
     public void updateFromDb(){
-        ArrayList<DataModel> aList2 = new ArrayList<>();
         Log.d("LISTFRAG", "Written data to List");
-
-        SQLiteDatabase db;// = dbHelper.getReadableDatabase();
-
+        /*========== FIELDS ==========*/
+        ArrayList<DataModel> aList2 = new ArrayList<>();
+        SQLiteDatabase db;
+        DataModel dm;
+        /*========== VARIABLES ==========*/
         String scanResult;
         String lat;
         String lng;
         String date;
-        DataModel dm;
-         //Create/Open a database
+        /*========== Create/Open DB ==========*/
         dbHelper = new ListDbHelper(getActivity().getApplicationContext());
-
         db = dbHelper.getReadableDatabase();
-        Log.d("db", db.toString());
+        /*========== Cursor ==========*/
         Cursor cursor = db.query(ListContract.ScannedEntry.TABLE, new String[]{ListContract.ScannedEntry._ID, ListContract.ScannedEntry.COL_RESULT, ListContract.ScannedEntry.LAT, ListContract.ScannedEntry.LNG, ListContract.ScannedEntry.DATE}, null, null, null, null, null);
         while (cursor.moveToNext()) { //Write the information from the Table to the ArrayList
             int idx1 = cursor.getColumnIndex(ListContract.ScannedEntry.COL_RESULT);
@@ -133,23 +133,28 @@ public class FragList extends ListFragment {
             dm = new DataModel(scanResult, lat, lng, date);
             aList2.add(dm);
         }
+        /*========== Close DB ==========*/
         db.close();
         cursor.close();
         dbHelper.close();
         Log.d("DB", "DB Closed");
+        /*========== Update List ==========*/
         mAdapter.clear(); //Clear the existing list.
         mAdapter.addAll(aList2); //Add the updated list.
         mAdapter.notifyDataSetChanged();
     }
 
     public void deleteFromDb(DataModel dm){
+        /*========== VARIABLES ==========*/
         String value1 = dm.getScanResult();
         String value2 = dm.getDate();
-        Log.d("DeleteValue", "Value to be deleted"+value1);
+        Log.d("DeleteValue", "Value to be deleted "+value1);
+        /*========== FIELDS ==========*/
         ListDbHelper dbHelper = new ListDbHelper(getContext());
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+        /*========== Delete Row ==========*/
         db.delete(ListContract.ScannedEntry.TABLE, ListContract.ScannedEntry.COL_RESULT+" =? AND "+ListContract.ScannedEntry.DATE+" =? ", new String[]{value1, value2});
-        //db.delete(ListContract.ScannedEntry.TABLE, ListContract.ScannedEntry.COL_RESULT+ " =? ", new String[]{value});
+        /*========== Close DB ==========*/
         db.close();
         dbHelper.close();
     }

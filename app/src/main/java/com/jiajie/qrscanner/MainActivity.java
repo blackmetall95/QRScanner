@@ -41,22 +41,22 @@ import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-
-    double latitude;
-    double longitude;
-    double lat = 3.1365;
-    double lng = 101.6865;
-    double count = 0;
-
-    FragmentPagerAdapter adapterViewPager;
-    MyPagerAdapter mPagerAdapter;
-    IntentIntegrator integrator = new IntentIntegrator(this);
+    /*========== CONSTANTS ==========*/
     static final int PERM_WRITE_EXT_STORAGE = 0;
     static final int PERM_COARSE_LOC = 1;
     static final int PERM_FINE_LOC = 2;
     static final int PERM_CAMERA = 3;
-    private GPSLocation gps;
+    /*========== VARIABLES ==========*/
+    double latitude;
+    double longitude;
+    double count = 0;
+    /*=========== FIELDS ==========*/
+    private IntentIntegrator integrator = new IntentIntegrator(this);
+    private List<String> permissions = new ArrayList<>();
+    private FragmentPagerAdapter adapterViewPager;
+    private MyPagerAdapter mPagerAdapter;
     private ListDbHelper dbHelper;
+    private GPSLocation gps;
     private String date;
 
     @Override
@@ -66,19 +66,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        /* ViewPager */
+        /*========== Permissions ==========*/
+        CheckPermissions(this);
+        /*========== ViewPager ==========*/
         ViewPager vPager = (ViewPager) findViewById(R.id.ViewPager);
         adapterViewPager = new MyPagerAdapter(getSupportFragmentManager());
         vPager.setAdapter(adapterViewPager);
-
-        gps = new GPSLocation(MainActivity.this);
-        dbHelper = new ListDbHelper(this);
-        CheckPermissions(this);
+        /*========== Fragment ==========*/
         FragmentManager fM = getSupportFragmentManager();
         mPagerAdapter = new MyPagerAdapter(fM);
-
+        /*========== Scanner ==========*/
         integrator.setOrientationLocked(false);
-
+        /*========== GPS ==========*/
+        gps = new GPSLocation(MainActivity.this);
+        /*========== Database ==========*/
+        dbHelper = new ListDbHelper(this);
+        /*========== FAB ==========*/
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -161,10 +164,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         return true;
     }
 
-    /**
+    /***********************************************
      * Check for permission with the User for SDK23+
-     */
-    List<String> permissions = new ArrayList<>();
+     ***********************************************/
     void CheckPermissions(Context context) {
         int writeExtStorageCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
         int coarseLocationCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -194,12 +196,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    /*******************************
+     * Respond to Permission Request
+     *******************************/
     @Override
     public void  onRequestPermissionsResult (int requestCode, @NonNull String permissions[], @NonNull int[] grantResults ) {
         switch(requestCode) {
             case PERM_WRITE_EXT_STORAGE: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {}
-                else{//Disable related functions
+                else{
+                    //Disable related functions
                 }
             }
             case PERM_COARSE_LOC: {
@@ -214,9 +220,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    /**
-     * Respond to the IntentIntegrator call
-     */
+    /*****************************
+     * Respond to IntentIntegrator
+     *****************************/
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent){
         super.onActivityResult(requestCode, resultCode, intent);
@@ -228,17 +234,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (result.getContents()==null) {
                 Toast.makeText(this, "Cancelled", Toast.LENGTH_SHORT).show();
             } else {
+                /*========== Scan Result ==========*/
                 String resultString = result.getContents();
                 android.support.v7.app.AlertDialog.Builder builder = new android.support.v7.app.AlertDialog.Builder(this);
                 builder.setTitle("Scan Result");
                 builder.setMessage(resultString);
                 android.support.v7.app.AlertDialog alert1 = builder.create();
                 alert1.show();
-
+                /*========== Get Location ==========*/
                 getLocation();
-
+                /*========== Get Date ==========*/
                 date = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.PRC).format(Calendar.getInstance().getTime());
-                Log.d("Date ", date);
+                /*========== Save to DB ==========*/
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
                 ContentValues value = new ContentValues();
                 value.clear();
@@ -248,14 +255,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 value.put(ListContract.ScannedEntry.DATE, date);
                 db.insertWithOnConflict(ListContract.ScannedEntry.TABLE, null, value, SQLiteDatabase.CONFLICT_IGNORE);
                 count = count+0.5;
-
+                /*========== Close DB ==========*/
                 db.close();
-                mPagerAdapter.dataChanged();
                 gps.StopUsingGPS();
+                /*========== Update UI ==========*/
+                mPagerAdapter.dataChanged();
             }
         }
     }
 
+    /**********************
+     * Get Current Location
+     **********************/
     double getLocation(){
         if (gps.CanGetLocation()){
             latitude = gps.getLatitude();
@@ -277,13 +288,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private static class MyPagerAdapter extends FragmentPagerAdapter{
+        /*========== CONSTANTS ==========*/
         private static int NUM_ITEMS = 2;
-
+        private static FragList fList = FragList.newInstance(0, "List");
+        private static FragMap fMap = FragMap.newInstance(1,"Map");
+        /*========== CONSTRUCTOR ==========*/
         private MyPagerAdapter(FragmentManager fragManager){
             super(fragManager);
         }
-        private static FragList fList = FragList.newInstance(0, "List");
-        private static FragMap fMap = FragMap.newInstance(1,"Map");
 
         @Override
         public int getCount() {
@@ -300,13 +312,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             return null;
         }
-
+        /*========== Page Name ==========*/
         @Override
         public CharSequence getPageTitle(int position){
             return titles.get(position);
         }
-
-        public void dataChanged(){
+        /*========== Update ==========*/
+        void dataChanged(){
             fList.updateFromDb();
             fMap.markerInit();
         }
